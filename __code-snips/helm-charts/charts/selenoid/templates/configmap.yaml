@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    run: {{ template "server.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "server.name" . }}
+data:
+{{- $root := . -}}
+{{- range $key, $value := .Values.configmaps.files }}
+  {{ $key }}: |+
+{{ $value | default "{}" | indent 4 }}
+{{- end -}}

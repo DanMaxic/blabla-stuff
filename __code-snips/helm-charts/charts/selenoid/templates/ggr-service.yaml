@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: ggr-lb-{{ template "server.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: ggr-lb
+  name: ggr-lb-{{ template "server.name" . }}
+{{- if .Values.server.service.annotations }}
+  annotations:
+{{ toYaml .Values.server.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.server.service.type }}
+  ports:
+    - port: {{ .Values.server.service.port }}
+      targetPort: http
+    {{- if .Values.server.service.nodePort }}
+      nodePort: {{ .Values.server.service.nodePort }}
+    {{- end }}
+      protocol: TCP
+      name: http
+  selector:
+    run: ggr-lb-{{ template "server.name" . }}
+    release: {{ .Release.Name }}

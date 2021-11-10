@@ -1,0 +1,86 @@
+scaleManagment:
+  selonoid: 1
+  ggr: 1
+  ggrUi: 1
+
+placementManagment:
+  selonoid: prometheus
+  ggr: prometheus
+  ggrUi: prometheus
+
+
+server:
+  name: selenoid-server
+  image:
+    repository: aerokube/selenoid
+    tag: latest
+    pullPolicy: Always
+  DynamicContainerMaxCount: 50
+  service:
+    type: NodePort
+    port: 4444
+
+ingress:
+  enabled: true
+  annotations: 
+    alb.ingress.kubernetes.io/ip-address-type: ipv4
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":4444}]'
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/scheme: internal
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/success-codes: 200-499
+    alb.ingress.kubernetes.io/security-groups: sg-????
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-path: /wd/hub/status
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '60'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '50'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '10'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/tags: Environment=prod,Team=test,Name=k8s-visual-inspector,app=k8s-visual-inspector
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=60,load_balancing.algorithm.type=least_outstanding_requests,deregistration_delay.timeout_seconds=10
+    external-dns.alpha.kubernetes.io/hostname: selenoid.backops.????.com
+
+
+ui:
+  name: selenoid-ui
+  image:
+    repository: aerokube/selenoid-ui
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 8888
+
+configmaps:
+  files:
+    browsers.json: |+
+      {
+        "chrome": {
+          "default": "87.0",
+          "versions": {
+            "87.0": {
+                "image": "registry.hub.docker.com/selenoid/chrome:87.0",
+                "port": "4444",
+                "tmpfs": {"/tmp": "size=512m"}, 
+                "path": "/"
+            }
+          }
+        }
+      }
+    guest.xml: |+ 
+      <qa:browsers xmlns:qa="urn:config.gridrouter.qatools.ru">
+        <browser name="chrome" defaultVersion="87.0">
+            <version number="87.0">
+                <region name="1">
+                    <host name="selenoid-server-1" port="4444" count="1"/>
+                    <host name="selenoid-server-2" port="4444" count="1"/>
+                    <host name="selenoid-server-3" port="4444" count="1"/>
+                    <host name="selenoid-server-4" port="4444" count="1"/>
+                    <host name="selenoid-server-5" port="4444" count="1"/>
+                    <host name="selenoid-server-6" port="4444" count="1"/>
+                </region>
+            </version>
+        </browser>
+      </qa:browsers>

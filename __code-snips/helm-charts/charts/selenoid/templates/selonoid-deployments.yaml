@@ -1,0 +1,562 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "server.name" . }}-1
+  labels:
+    run: {{ template "server.name" . }}-1
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+    component: selenoid
+spec:
+  replicas: {{ .Values.scaleManagment.selonoid }}
+  selector:
+    matchLabels:
+      run: {{ template "server.name" . }}-1
+      release: {{ .Release.Name }}
+      component: selenoid
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: {{ template "server.name" . }}-1
+        release: {{ .Release.Name }}
+        component: selenoid
+    spec:
+      hostNetwork: true
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: NotIn
+                values:
+                - {{ .Values.placementManagment.selonoid }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: 
+            - "/usr/bin/selenoid"
+          args:
+            - -listen
+            - "0.0.0.0:4444"
+            - -conf 
+            - /etc/selenoid/browsers.json
+            - -limit 
+            - "{{.Values.server.DynamicContainerMaxCount }}"
+            - -enable-file-upload
+            - -capture-driver-logs
+            - -container-network
+            - selenoid
+            - -retry-count
+            - "100"
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+              - NET_ADMIN
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 4444
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/selenoid/browsers.json
+            name: browsers-json
+            subPath: browsers.json
+          - mountPath: /var/run/docker.sock
+            name: docker-socket
+      volumes:
+      - configMap:
+          items:
+          - key: browsers.json
+            path: browsers.json
+          name: {{ template "server.name" . }}
+        name: browsers-json
+      - hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+        name: docker-socket
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "server.name" . }}-2
+  labels:
+    run: "{{ .Release.Name }}"
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+    component: selenoid
+spec:
+  replicas: {{ .Values.scaleManagment.selonoid }}
+  selector:
+    matchLabels:
+      run: {{ template "server.name" . }}-2
+      release: {{ .Release.Name }}
+      component: selenoid
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: {{ template "server.name" . }}-2
+        release: {{ .Release.Name }}
+        component: selenoid
+    spec:
+      hostNetwork: true
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: NotIn
+                values:
+                - {{ .Values.placementManagment.selonoid }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: 
+            - "/usr/bin/selenoid"
+          args:
+            - -listen
+            - "0.0.0.0:4444"
+            - -conf 
+            - /etc/selenoid/browsers.json
+            - -limit 
+            - "{{.Values.server.DynamicContainerMaxCount }}"
+            - -enable-file-upload
+            - -capture-driver-logs
+            - -container-network
+            - selenoid
+            - -retry-count
+            - "100"
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+              - NET_ADMIN
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 4444
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/selenoid/browsers.json
+            name: browsers-json
+            subPath: browsers.json
+          - mountPath: /var/run/docker.sock
+            name: docker-socket
+      volumes:
+      - configMap:
+          items:
+          - key: browsers.json
+            path: browsers.json
+          name: {{ template "server.name" . }}
+        name: browsers-json
+      - hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+        name: docker-socket
+---apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "server.name" . }}-3
+  labels:
+    run: {{ template "server.name" . }}-3
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+    component: selenoid
+spec:
+  replicas: {{ .Values.scaleManagment.selonoid }}
+  selector:
+    matchLabels:
+      run: {{ template "server.name" . }}-3
+      release: {{ .Release.Name }}
+      component: selenoid
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: {{ template "server.name" . }}-3
+        release: {{ .Release.Name }}
+        component: selenoid
+    spec:
+      hostNetwork: true
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: NotIn
+                values:
+                - {{ .Values.placementManagment.selonoid }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: 
+            - "/usr/bin/selenoid"
+          args:
+            - -listen
+            - "0.0.0.0:4444"
+            - -conf 
+            - /etc/selenoid/browsers.json
+            - -limit 
+            - "{{.Values.server.DynamicContainerMaxCount }}"
+            - -enable-file-upload
+            - -capture-driver-logs
+            - -container-network
+            - selenoid
+            - -retry-count
+            - "100"
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+              - NET_ADMIN
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 4444
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/selenoid/browsers.json
+            name: browsers-json
+            subPath: browsers.json
+          - mountPath: /var/run/docker.sock
+            name: docker-socket
+      volumes:
+      - configMap:
+          items:
+          - key: browsers.json
+            path: browsers.json
+          name: {{ template "server.name" . }}
+        name: browsers-json
+      - hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+        name: docker-socket
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "server.name" . }}-4
+  labels:
+    run: {{ template "server.name" . }}-4
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+    component: selenoid
+spec:
+  replicas: {{ .Values.scaleManagment.selonoid }}
+  selector:
+    matchLabels:
+      run: {{ template "server.name" . }}-4
+      release: {{ .Release.Name }}
+      component: selenoid
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: {{ template "server.name" . }}-4
+        release: {{ .Release.Name }}
+        component: selenoid
+    spec:
+      hostNetwork: true
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: NotIn
+                values:
+                - {{ .Values.placementManagment.selonoid }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: 
+            - "/usr/bin/selenoid"
+          args:
+            - -listen
+            - "0.0.0.0:4444"
+            - -conf 
+            - /etc/selenoid/browsers.json
+            - -limit 
+            - "{{.Values.server.DynamicContainerMaxCount }}"
+            - -enable-file-upload
+            - -capture-driver-logs
+            - -container-network
+            - selenoid
+            - -retry-count
+            - "100"
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+              - NET_ADMIN
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 4444
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/selenoid/browsers.json
+            name: browsers-json
+            subPath: browsers.json
+          - mountPath: /var/run/docker.sock
+            name: docker-socket
+      volumes:
+      - configMap:
+          items:
+          - key: browsers.json
+            path: browsers.json
+          name: {{ template "server.name" . }}
+        name: browsers-json
+      - hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+        name: docker-socket
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "server.name" . }}-5
+  labels:
+    run: {{ template "server.name" . }}-5
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+    component: selenoid
+spec:
+  replicas: {{ .Values.scaleManagment.selonoid }}
+  selector:
+    matchLabels:
+      run: {{ template "server.name" . }}-5
+      release: {{ .Release.Name }}
+      component: selenoid
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: {{ template "server.name" . }}-5
+        release: {{ .Release.Name }}
+        component: selenoid
+    spec:
+      hostNetwork: true
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: NotIn
+                values:
+                - {{ .Values.placementManagment.selonoid }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: 
+            - "/usr/bin/selenoid"
+          args:
+            - -listen
+            - "0.0.0.0:4444"
+            - -conf 
+            - /etc/selenoid/browsers.json
+            - -limit 
+            - "{{.Values.server.DynamicContainerMaxCount }}"
+            - -enable-file-upload
+            - -capture-driver-logs
+            - -container-network
+            - selenoid
+            - -retry-count
+            - "100"
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+              - NET_ADMIN
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 4444
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/selenoid/browsers.json
+            name: browsers-json
+            subPath: browsers.json
+          - mountPath: /var/run/docker.sock
+            name: docker-socket
+      volumes:
+      - configMap:
+          items:
+          - key: browsers.json
+            path: browsers.json
+          name: {{ template "server.name" . }}
+        name: browsers-json
+      - hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+        name: docker-socket
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "server.name" . }}-6
+  labels:
+    run: {{ template "server.name" . }}-6
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+    component: selenoid
+spec:
+  replicas: {{ .Values.scaleManagment.selonoid }}
+  selector:
+    matchLabels:
+      run: {{ template "server.name" . }}-6
+      release: {{ .Release.Name }}
+      component: selenoid
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: {{ template "server.name" . }}-6
+        release: {{ .Release.Name }}
+        component: selenoid
+    spec:
+      hostNetwork: true
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: NotIn
+                values:
+                - {{ .Values.placementManagment.selonoid }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: 
+            - "/usr/bin/selenoid"
+          args:
+            - -listen
+            - "0.0.0.0:4444"
+            - -conf 
+            - /etc/selenoid/browsers.json
+            - -limit 
+            - "{{.Values.server.DynamicContainerMaxCount }}"
+            - -enable-file-upload
+            - -capture-driver-logs
+            - -container-network
+            - selenoid
+            - -retry-count
+            - "100"
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+              - NET_ADMIN
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 4444
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/selenoid/browsers.json
+            name: browsers-json
+            subPath: browsers.json
+          - mountPath: /var/run/docker.sock
+            name: docker-socket
+      volumes:
+      - configMap:
+          items:
+          - key: browsers.json
+            path: browsers.json
+          name: {{ template "server.name" . }}
+        name: browsers-json
+      - hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+        name: docker-socket

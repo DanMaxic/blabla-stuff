@@ -1,0 +1,190 @@
+cask_args appdir: '/Applications'
+
+tap "chef/chef"
+tap "homebrew/bundle" || true
+tap "homebrew/cask" || true
+tap "homebrew/core" || true
+tap "mikhailai/misc" || true
+
+brew "coreutils"
+brew "ant"
+brew "ansible"
+brew "ansible-cmdb"
+brew "ansible-lint"
+brew "awscli"
+brew "azure-cli"
+
+brew "bash"
+brew "bash-completion"
+brew 'bashish'
+
+brew "brew-cask-completion"
+
+brew "cheat"
+brew "cmake"
+cask "docker"
+brew "docker-gen"
+brew "docker-machine"
+brew "docker-machine-completion"
+brew "docker-slim"
+brew "dockviz"
+brew "dfu-util"
+
+brew "gcc"
+brew "gcutil"
+brew "gdrive"
+brew "git"
+brew "git-cal"
+brew "git-crypt"
+brew "git-flow"
+brew "git-lfs"
+brew "git-plus"
+brew "git-secret"
+brew "git-secrets"
+
+
+brew "go"
+brew "dep"
+brew "goenv"
+
+brew "googler"
+brew "groovy"
+
+
+brew "ioping"
+brew "jq"
+brew 'yq'
+brew 'xsv'
+cask 'tad'
+
+
+brew "kompose"
+
+brew "kops"
+brew "ktmpl"
+brew "kubecfg"
+
+cask "kubecontext"
+brew "kubectl"
+brew "kubectx"
+brew "kubeless"
+brew "kubespy"
+cask "kubernetic"
+brew "kustomize"
+brew "maven"
+brew "maven-shell"
+
+brew "make"
+brew "node"
+brew "node-build"
+brew "nodenv"
+brew "nomad"
+brew "nuttcp"
+brew "open-cobol"
+brew "opencv"
+brew "openvpn"
+
+brew "packer"
+
+brew "perl"
+brew "pidof"
+brew "pip-completion"
+
+brew "lsusb"
+brew "openhmd"
+brew "proctools"
+
+# python language
+
+brew "python"
+brew "python@3.8"
+brew "python@3.9"
+brew 'jython'
+
+
+brew "pipenv"
+brew "pyenv"
+
+# R programming language
+brew "r"
+
+brew "ruby"
+brew "ruby-completion"
+brew "ruby-install"
+brew "ruby-build"
+brew "rbenv"
+
+
+# Rust programming language
+brew 'rust'
+
+
+# Lua scripting language
+brew 'lua'
+brew 'luajit'
+
+# net utils
+brew "telnet"
+brew 'netcat'
+brew 'nmap'
+brew "tcptraceroute"
+brew 'certbot'
+
+
+brew "terraform"
+brew "terraform-inventory"
+brew "terraform_landscape"
+brew "terraforming"
+brew "terragrunt"
+brew "tfenv"
+cask "chef-infra-client"
+brew "tldr"
+brew 'wget'
+brew 'rsync'
+
+
+# Android
+cask 'android-studio'
+cask 'android-file-transfer'
+cask 'android-ndk'
+cask 'android-platform-tools'
+cask 'android-sdk'
+cask 'tunnelbear'
+cask 'duet'
+cask 'zoomus'
+
+cask "docker-toolbox"
+cask "dotnet-sdk"
+cask "drawio"
+cask "freecad"
+cask "gitnote"
+cask "github"
+cask "google-chrome"
+cask "grammarly"
+cask "intellij-idea-ce"
+cask "iterm2"
+cask "microsoft-office"
+# cask "microsoft-teams"
+cask "oracle-jdk"
+cask "rar"
+cask "macfuse"
+# cask "slack"
+cask "plover"
+brew "podman"
+cask "powershell"
+cask "vagrant-manager"
+cask "vagrant"
+cask "vagrant-vmware-utility"
+# cask "virtualbox"
+# cask "virtualbox-extension-pack"
+cask "visual-studio-code"
+# cask "visual-studio"
+# cask "vlc"
+cask "chef-workstation"
+cask "pycharm-ce"
+cask 'slack'
+
+
+brew 'autoenv'
+cask "notion"
+

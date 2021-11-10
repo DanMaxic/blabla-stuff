@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ggr-lb-{{ template "server.name" . }}
+  labels:
+    run: "ggr-lb-{{ .Release.Name }}"
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+    component: ggr-lb
+  annotations:
+    prometheus.io/port: "9300"
+    prometheus.io/scrape: "false"
+spec:
+  replicas: {{ .Values.scaleManagment.ggr }}
+  selector:
+    matchLabels:
+      run: ggr-lb-{{ template "server.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: ggr-lb-{{ template "server.name" . }}
+        release: {{ .Release.Name }}
+        component: ggr-lb
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ .Values.placementManagment.ggr }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: "aerokube/ggr:latest"
+          command: 
+            - "/usr/bin/ggr"
+          args:
+            - -listen
+            - "0.0.0.0:4444"
+            - -quotaDir 
+            - "/etc/grid-router/quota"
+            - "-guests-allowed"
+            - "-guests-quota"
+            - "guest"
+            - "-verbose"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 4444
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /wd/hub/status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /wd/hub/status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/grid-router/quota/guest.xml
+            name: guest-xml
+            subPath: guest.xml
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: "2"
+              memory: 4Gi
+
+      volumes:
+      - configMap:
+          items:
+          - key: guest.xml
+            path: guest.xml
+          name: {{ template "server.name" . }}
+        name: guest-xml

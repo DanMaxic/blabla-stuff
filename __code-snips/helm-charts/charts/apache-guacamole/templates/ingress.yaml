@@ -1,0 +1,25 @@
+{{- if .Values.guacamole.ingress.enabled -}}
+{{- $fullName := include "guacamole.fullname" . -}}
+{{- $ingressPath := .Values.guacamole.ingress.path -}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/name: {{ include "guacamole.name" . }}
+    helm.sh/chart: {{ include "guacamole.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- with .Values.guacamole.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: {{ $fullName }}
+              servicePort: http
+{{- end }}

@@ -1,0 +1,378 @@
+
+# global:
+#   imageRegistry: myRegistryName
+#   imagePullSecrets:
+#     - myRegistryKeySecretName
+#   storageClass: myStorageClass
+
+allowNamespaceDiscovery: true
+enableIPv6: false
+# clusters:
+# - name: default
+clusters:
+  - name: default
+
+ingress:
+  enabled: true
+  certManager: false
+  hostname: kubeapps.local
+  tls: false
+  annotations:
+    alb.ingress.kubernetes.io/ip-address-type: ipv4
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-2:????:certificate/????"
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/success-codes: 200-499
+    alb.ingress.kubernetes.io/security-groups: sg-06ae2e882fce41fb9
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '60'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '50'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '10'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/tags: Environment=prod,Team=test,Name=eks-grafana,app=eks-grafana
+    external-dns.alpha.kubernetes.io/hostname: kubeapps-poc.backops.????.com
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=60,load_balancing.algorithm.type=least_outstanding_requests,deregistration_delay.timeout_seconds=10
+  secrets: []
+  
+  # hosts:
+  #   - name: kubeapps.local
+  #     path: /
+  #     ## Set this to true in order to enable TLS on the ingress record
+  #     ##
+  #     tls: false
+  #     ## If TLS is set to true, you must declare what secret will store the key/certificate for TLS
+  #     ##
+  #     tlsSecret: kubeapps.local-tls
+
+## Frontend paramters
+##
+frontend:
+  replicaCount: 2
+  image:
+    registry: docker.io
+    repository: bitnami/nginx
+    tag: 1.19.2-debian-10-r32
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8080
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 8080
+    initialDelaySeconds: 0
+    timeoutSeconds: 5
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+  affinity: {}
+  ## Node labels for pod assignment. Evaluated as a template.
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+  ## Tolerations for pod assignment. Evaluated as a template.
+  ## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: {}
+  ## Use access_token as the Bearer when talking to the k8s api server
+  ## Some K8s distributions such as GKE requires it
+  ##
+  proxypassAccessTokenAsBearer: false
+  ## Set large_client_header_buffers in nginx config
+  ## Can be required when using OIDC or LDAP due to large cookies
+  #
+  largeClientHeaderBuffers: "4 32k"
+
+apprepository:
+  replicaCount: 1
+  image:
+    registry: docker.io
+    repository: bitnami/kubeapps-apprepository-controller
+    tag: 2.0.1-scratch-r0
+    pullPolicy: IfNotPresent
+  syncImage:
+    registry: docker.io
+    repository: bitnami/kubeapps-asset-syncer
+    tag: 2.0.1-scratch-r0
+    pullPolicy: IfNotPresent
+  initialReposProxy:
+    enabled: false
+  initialRepos:
+    - name: bitnami
+      url: https://charts.bitnami.com/bitnami
+  # Additional repositories
+  # - name: chartmuseum
+  #   url: https://chartmuseum.default:8080
+  #   nodeSelector:
+  #     somelabel: somevalue
+  #   # Specify an Authorization Header if you are using an authentication method.
+  #   authorizationHeader: "Bearer xrxNC..."
+  #   # If you're providing your own certificates, please use this to add the certificates as secrets.
+  #   # It should start with -----BEGIN CERTIFICATE----- or
+  #   # -----BEGIN RSA PRIVATE KEY-----
+  #   caCert:
+  #   # Create this apprepository in a custom namespace
+  #   namespace:
+  # https://github.com/kubeapps/kubeapps/issues/478#issuecomment-422979262
+  ## AppRepository Controller containers' resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+  affinity: {}
+  nodeSelector: {}
+  tolerations: {}
+  watchAllNamespaces: true
+hooks:
+  image:
+    registry: docker.io
+    repository: bitnami/kubectl
+    tag: 1.18.9-debian-10-r5
+    pullPolicy: IfNotPresent
+  affinity: {}
+  nodeSelector: {}
+  tolerations: {}
+
+kubeops:
+  replicaCount: 2
+  image:
+    registry: docker.io
+    repository: bitnami/kubeapps-kubeops
+    tag: 2.0.1-scratch-r1
+    ## Specify a imagePullPolicy
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+
+  service:
+    port: 8080
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+  ## Kubeops containers' liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
+  ##
+  livenessProbe:
+    httpGet:
+      path: /live
+      port: 8080
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8080
+    initialDelaySeconds: 0
+    timeoutSeconds: 5
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+assetsvc:
+  replicaCount: 2
+  image:
+    registry: docker.io
+    repository: bitnami/kubeapps-assetsvc
+    tag: 2.0.1-scratch-r0
+    pullPolicy: IfNotPresent
+  service:
+    port: 8080
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+  livenessProbe:
+    httpGet:
+      path: /live
+      port: 8080
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8080
+    initialDelaySeconds: 0
+    timeoutSeconds: 5
+  affinity: {}
+  nodeSelector: {}
+  tolerations: {}
+dashboard:
+  replicaCount: 2
+  image:
+    registry: docker.io
+    repository: bitnami/kubeapps-dashboard
+    tag: 2.0.1-debian-10-r0
+    pullPolicy: IfNotPresent
+  service:
+    port: 8080
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 8080
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 8080
+    initialDelaySeconds: 0
+    timeoutSeconds: 5
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+  affinity: {}
+  nodeSelector: {}
+  tolerations: {}
+postgresql:
+  replication:
+    enabled: true
+  postgresqlDatabase: assets
+  ## Kubeapps uses PostgreSQL as a cache and persistence is not required
+  ##
+  persistence:
+    enabled: false
+    size: 8Gi
+  ## PostgreSQL credentials are handled by kubeapps to facilitate upgrades
+  ##
+  existingSecret: kubeapps-db
+  ## Pod Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  ##
+  securityContext:
+    enabled: false
+  ## PostgreSQL containers' resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+
+## RBAC paramters
+##
+rbac:
+  ## Perform creation of RBAC resources
+  ##
+  create: true
+
+## Pod Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
+securityContext:
+  enabled: false
+  runAsUser: 1001
+  # fsGroup: 1001
+
+## Image used for the tests. The only requirement is to include curl
+##
+testImage:
+  registry: docker.io
+  repository: bitnami/nginx
+  tag: 1.19.2-debian-10-r32
+
+# Auth Proxy configuration for OIDC support
+# ref: https://github.com/kubeapps/kubeapps/blob/master/docs/user/using-an-OIDC-provider.md
+authProxy:
+  ## Set to true if Kubeapps should configure the OAuth login/logout URIs defined below.
+  #
+  enabled: false
+  ## When authProxy.enabled is true, by default Kubeapps will deploy its own
+  ## auth-proxy service as part of the Kubeapps frontend. Set external to true
+  ## if you are configuring your own auth proxy service external to Kubeapps
+  ## and therefore don't want Kubeapps to deploy its own auth-proxy.
+  #
+  external: false
+  ## Overridable flags for OAuth URIs to which the Kubeapps frontend redirects for authn.
+  ## Useful when serving Kubeapps under a sub path or using an external auth proxy.
+  ##
+  oauthLoginURI: /oauth2/start
+  oauthLogoutURI: /oauth2/sign_out
+
+  ## Skip the Kubeapps login page when using OIDC and directly redirect to the IdP
+  ##
+  skipKubeappsLoginPage: false
+
+  ## The remaining auth proxy values are relevant only if an internal auth-proxy is
+  ## being configured by Kubeapps.
+  ## Bitnami OAuth2 Proxy image
+  ## ref: https://hub.docker.com/r/bitnami/oauth2-proxy/tags/
+  ##
+  image:
+    registry: docker.io
+    repository: bitnami/oauth2-proxy
+    tag: 6.1.1-debian-10-r12
+    ## Specify a imagePullPolicy
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+
+  ## Mandatory parameters for the internal auth-proxy.
+  ##
+  provider: ""
+  clientID: ""
+  clientSecret: ""
+  ## cookieSecret is used by oauth2-proxy to encrypt any credentials so that it requires
+  ## no storage. Note that it must be a particular number of bytes. Recommend using the
+  ## following to generate a cookieSecret as per the oauth2 configuration documentation
+  ## at https://pusher.github.io/oauth2_proxy/configuration :
+  ## python -c 'import os,base64; print base64.urlsafe_b64encode(os.urandom(16))'
+  cookieSecret: ""
+  ## Use "example.com" to restrict logins to emails from example.com
+  emailDomain: "*"
+  ## Additional flags for oauth2-proxy
+  ##
+  additionalFlags: []
+  # - --ssl-insecure-skip-verify
+  # - --cookie-secure=false
+  # - --scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/cloud-platform
+  # - --oidc-issuer-url=https://accounts.google.com # Only needed if provider is oidc
+  ## OAuth2 Proxy containers' resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    ## Default values set based on usage data from running Kubeapps instances
+    ## ref: https://github.com/kubeapps/kubeapps/issues/478#issuecomment-422979262
+    ##
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+
+## Feature flags
+## These are used to switch on in development features or new features which are ready to be released.
+featureFlags:
+  invalidateCache: true

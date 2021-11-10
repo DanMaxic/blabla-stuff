@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ggr-ui-{{ template "server.name" . }}
+  labels:
+    run: ggr-ui-{{ template "server.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    cpomponent: ggr-ui
+    release: "{{ .Release.Name }}"
+    heritage: {{ .Release.Service }}
+  annotations:
+    prometheus.io/port: "9300"
+    prometheus.io/scrape: "true"
+spec:
+  replicas: {{ .Values.scaleManagment.ggrUi }}
+  selector:
+    matchLabels:
+      run: ggr-ui-{{ template "server.name" . }}
+      release: {{ .Release.Name }}
+      cpomponent: ggr-ui
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: ggr-ui-{{ template "server.name" . }}
+        release: {{ .Release.Name }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        cpomponent: ggr-ui
+      annotations:
+        prometheus.io/port: "9300"
+        prometheus.io/scrape: "true"
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ .Values.placementManagment.ggrUi }}
+      containers:
+        - name: {{ template "server.name" . }}
+          image: aerokube/ggr-ui:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: 
+            - "/usr/bin/ggr-ui"
+          args:
+            - -quota-dir
+            - "/etc/grid-router/quota"
+          ports:
+            - name: http
+              containerPort: 8888
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+          volumeMounts:
+          - mountPath: /etc/grid-router/quota/guest.xml
+            name: guest-xml
+            subPath: guest.xml
+        - name: is-selenium-selenium-hub-metric-ex
+          image: "danmaxic/selenoid-metrics-exporter:latest"
+          ports:
+            - containerPort: 9300
+              name: monitoring
+          env:
+            - name: GGR_URI
+              value: "ggr-lb-{{ template "server.name" . }}:4444"
+            - name: GGR_UI_URI
+              value: "ggr-ui-{{ template "ui.name" . }}:8888"
+      volumes:
+      - configMap:
+          items:
+          - key: guest.xml
+            path: guest.xml
+          name: {{ template "server.name" . }}
+        name: guest-xml

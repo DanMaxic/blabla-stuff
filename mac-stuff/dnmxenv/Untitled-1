@@ -1,0 +1,8 @@
+ docker run -d --cap-add=NET_ADMIN \
+   --sysctl net.ipv4.ip_forward=1 \
+   --device /dev/net/tun --restart=always    \
+   --log-opt max-size=1g    \
+   --dns 
+   -e Secret=eyJhbGciOiJFUzM4NCJ9.XAAAAAVjb25uZWN0b3JfaWQAEAAAAAAAAAAAAAAAAAAAAAAAAAAABXNpdGVfaWQAEAAAAAB4kiCEN-1InpmEYLQ5C2K0EGludGVybmFsX3NpdGVfaWQAFw8AAAA.6podhcBLi9Bat8akGaXjgS2EuGMkSGbHyM22veQBoXWun06cJ2PB4xn9Mn5d4FFT8K4snO3PSviN8I4qCziOwwg8vLHc2xQ0CACoSkT8Di6bit98VKCI44B0-JnVR7Ea \
+   adanite/odo_connector:eu_v3 
+ 

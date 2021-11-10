@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: {{ template "ui.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: ggr-ui
+  name: ggr-ui-{{ template "ui.name" . }}
+{{- if .Values.ui.service.annotations }}
+  annotations:
+{{ toYaml .Values.ui.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.ui.service.type }}
+  ports:
+    - port: {{ .Values.ui.service.port }}
+      targetPort: http
+    {{- if .Values.ui.service.nodePort }}
+      nodePort: {{ .Values.ui.service.nodePort }}
+    {{- end }}
+      protocol: TCP
+      name: http
+  selector:
+    run: ggr-ui-{{ template "server.name" . }}
+    release: {{ .Release.Name }}
+    cpomponent: ggr-ui

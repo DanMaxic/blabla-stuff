@@ -1,0 +1,29 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ggr-lb-{{ template "ui.name" . }}-ingress
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.ingress.tls }}
+  tls:
+  {{- range .Values.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+    - http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: ggr-lb-selenoid-server
+              servicePort: 4444
+{{- end }}

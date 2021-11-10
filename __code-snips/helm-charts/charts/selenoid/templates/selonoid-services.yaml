@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: {{ template "server.name" . }}-1
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: selenoid
+  name: {{ template "server.name" . }}-1
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4444
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    run: {{ template "server.name" . }}-1
+    release: {{ .Release.Name }}
+    component: selenoid
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: {{ template "server.name" . }}-2
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: selenoid
+  name: {{ template "server.name" . }}-2
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4444
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    run: {{ template "server.name" . }}-2
+    release: {{ .Release.Name }}
+    component: selenoid
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: {{ template "server.name" . }}-3
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: selenoid
+  name: {{ template "server.name" . }}-3
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4444
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    run: {{ template "server.name" . }}-3
+    release: {{ .Release.Name }}
+    component: selenoid
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: {{ template "server.name" . }}-4
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: selenoid
+  name: {{ template "server.name" . }}-4
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4444
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    run: {{ template "server.name" . }}-4
+    release: {{ .Release.Name }}
+    component: selenoid
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: {{ template "server.name" . }}-5
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: selenoid
+  name: {{ template "server.name" . }}-5
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4444
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    run: {{ template "server.name" . }}-5
+    release: {{ .Release.Name }}
+    component: selenoid
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: {{ template "server.name" . }}-6
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    component: selenoid
+  name: {{ template "server.name" . }}-6
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4444
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    run: {{ template "server.name" . }}-6
+    release: {{ .Release.Name }}
+    component: selenoid

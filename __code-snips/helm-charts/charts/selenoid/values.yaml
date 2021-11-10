@@ -1,0 +1,33 @@
+replicaCount: 1
+
+name: selenoid-server
+image:
+  repository: aerokube/selenoid
+  tag: latest
+  pullPolicy: Always
+service:
+  type: NodePort
+  port: 4444
+files:
+  browsers.json: |+
+    {
+        "OGI": {
+            "default": "24.0",
+            "versions": {
+                "24.0": {
+                    "image": "selenoid/vnc:firefox_24.0",
+                    "port": "4444",
+                    "path": "/wd/hub"
+                }
+            }
+        }
+    }
+ui:
+  name: selenoid-ui
+  image:
+    repository: aerokube/selenoid-ui
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 8888
