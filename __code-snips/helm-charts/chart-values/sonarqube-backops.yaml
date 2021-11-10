@@ -1,0 +1,101 @@
+replicaCount: 1
+
+ # This will use the default deployment strategy unless it is overriden
+deploymentStrategy: {}
+OpenShift:
+  enabled: false
+  createSCC: false
+
+elasticsearch:
+  configureNode: false
+  bootstrapChecks: false
+
+service:
+  type: NodePort
+  externalPort: 9000
+  internalPort: 9000
+  labels:
+  annotations: {}
+ingress:
+  enabled: true
+  hosts:
+    - name: ""
+      path: /*
+  annotations: 
+    alb.ingress.kubernetes.io/ip-address-type: ipv4
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-FS-1-2-Res-2020-10
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-2:??????:certificate/?????"
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/success-codes: 200-499
+    alb.ingress.kubernetes.io/security-groups: sg-????
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '60'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '50'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '10'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/tags: Environment=backops,Team=backops,Name=sonarqube-alb,app=sonarqube-alb
+    external-dns.alpha.kubernetes.io/hostname: sonarqube-poc.backops.?????.com
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=60,load_balancing.algorithm.type=least_outstanding_requests,deregistration_delay.timeout_seconds=10
+  labels:
+    traffic-type: internal
+
+
+
+initSysctl:
+  enabled: true
+  vmMaxMapCount: 524288
+  fsFileMax: 131072
+  nofile: 131072
+  nproc: 8192
+  securityContext:
+    privileged: true
+
+# List of plugins to install.
+# For example:
+# plugins:
+#  install:
+#    - "https://github.com/AmadeusITGroup/sonar-stash/releases/download/1.3.0/sonar-stash-plugin-1.3.0.jar"
+#    - "https://github.com/SonarSource/sonar-ldap/releases/download/2.2-RC3/sonar-ldap-plugin-2.2.0.601.jar"
+plugins:
+  install:
+    - "https://github.com/hkamel/sonar-auth-aad/releases/download/1.2.0/sonar-auth-aad-plugin-1.2.0.jar"
+    - "https://github.com/AmadeusITGroup/sonar-stash/releases/download/1.6.0/sonar-stash-plugin-1.6.0.jar"
+  lib: []
+
+jvmOpts: "-Djava.net.preferIPv4Stack=true"
+
+annotations: {}
+resources: {}
+persistence:
+  enabled: true
+  annotations: {}
+  storageClass: "ebs-sc"
+  accessMode: ReadWriteOnce
+  size: 25Gi
+emptyDir: {}
+jdbcDatabaseType: postgresql
+postgresql:
+  enabled: true
+  postgresqlUsername: "sonarUser"
+  postgresqlPassword: "sonarPass"
+  postgresqlDatabase: "sonarDB"
+  service:
+    port: 5432
+  resources:
+    limits:
+      cpu: 2
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  persistence:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    storageClass: "ebs-sc"
+terminationGracePeriodSeconds: 60

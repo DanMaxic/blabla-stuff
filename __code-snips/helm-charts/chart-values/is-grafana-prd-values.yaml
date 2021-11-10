@@ -1,0 +1,395 @@
+rbac:
+  create: true
+  pspEnabled: true
+  pspUseAppArmor: true
+  namespaced: false
+  extraRoleRules: []
+  extraClusterRoleRules: []
+serviceAccount:
+  create: true
+  name:
+  nameTest:
+
+replicas: 1
+
+podDisruptionBudget: {}
+deploymentStrategy:
+  type: RollingUpdate
+
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 60
+  timeoutSeconds: 30
+  failureThreshold: 10
+
+image:
+  repository: grafana/grafana
+  tag: 7.1.5
+  sha: ""
+  pullPolicy: IfNotPresent
+
+testFramework:
+  enabled: true
+  image: "bats/bats"
+  tag: "v1.1.0"
+  imagePullPolicy: IfNotPresent
+  securityContext: {}
+
+securityContext:
+  runAsUser: 472
+  runAsGroup: 472
+  fsGroup: 472
+
+
+extraConfigmapMounts: []
+extraEmptyDirMounts: []
+
+downloadDashboardsImage:
+  repository: curlimages/curl
+  tag: 7.70.0
+  sha: ""
+  pullPolicy: IfNotPresent
+
+downloadDashboards:
+  env: {}
+  resources: {}
+podPortName: grafana
+service:
+  type: NodePort
+  port: 80
+  targetPort: 3000
+  annotations: {}
+  labels: {}
+  portName: service
+
+serviceMonitor:
+  enabled: false
+  path: /metrics
+  labels: {}
+  interval: 1m
+  scrapeTimeout: 30s
+  relabelings: []
+
+extraExposePorts: []
+hostAliases: []
+  # - ip: "1.2.3.4"
+  #   hostnames:
+  #     - "my.host.com"
+
+ingress:
+  enabled: true
+  annotations:
+    alb.ingress.kubernetes.io/ip-address-type: ipv4
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-2:????:certificate/????"
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/success-codes: 200-499
+    alb.ingress.kubernetes.io/security-groups: sg-????
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '60'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '50'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '10'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/tags: Environment=prod,Team=test,Name=eks-grafana,app=eks-grafana
+    external-dns.alpha.kubernetes.io/hostname: grafana-poc.backops.????.com
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=60,load_balancing.algorithm.type=least_outstanding_requests,deregistration_delay.timeout_seconds=10
+
+  labels: {}
+  path: /*
+  hosts: []
+  ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
+  extraPaths: []
+  tls: []
+
+resources:
+ limits:
+   cpu: 100m
+   memory: 2G
+ requests:
+   cpu: 100m
+   memory: 2G
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+extraInitContainers: []
+extraContainers: |
+# - name: proxy
+#   image: quay.io/gambol99/keycloak-proxy:latest
+#   args:
+#   - -provider=github
+#   - -client-id=
+#   - -client-secret=
+#   - -github-org=<ORG_NAME>
+#   - -email-domain=*
+#   - -cookie-secret=
+#   - -http-address=http://0.0.0.0:4181
+#   - -upstream-url=http://127.0.0.1:3000
+#   ports:
+#     - name: proxy-web
+#       containerPort: 4181
+
+## Volumes that can be used in init containers that will not be mounted to deployment pods
+extraContainerVolumes: []
+#  - name: volume-from-secret
+#    secret:
+#      secretName: secret-to-mount
+#  - name: empty-dir-volume
+#    emptyDir: {}
+
+persistence:
+  type: pvc
+  enabled: true
+  storageClassName: "ebs-sc"
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
+  # annotations: {}
+  finalizers:
+    - kubernetes.io/pvc-protection
+  # subPath: ""
+  # existingClaim:
+
+initChownData:
+  enabled: true
+
+  
+  image:
+    repository: busybox
+    tag: "1.31.1"
+    sha: ""
+    pullPolicy: IfNotPresent
+  resources:
+   limits:
+     cpu: 500m
+     memory: "2Gi"
+   requests:
+     cpu: 100m
+     memory: "2Gi"
+
+adminUser: admin
+adminPassword: strongpassword
+
+
+admin:
+  existingSecret: ""
+  userKey: admin-user
+  passwordKey: admin-password
+
+## Define command to be executed at startup by grafana container
+## Needed if using `vault-env` to manage secrets (ref: https://banzaicloud.com/blog/inject-secrets-into-pods-vault/)
+## Default is "run.sh" as defined in grafana's Dockerfile
+# command:
+# - "sh"
+# - "/run.sh"
+
+env: {}
+envValueFrom: {}
+envFromSecret: ""
+envRenderSecret: {}
+extraSecretMounts: []
+## Additional grafana server volume mounts
+# Defines additional volume mounts.
+extraVolumeMounts: []
+  # - name: extra-volume
+  #   mountPath: /mnt/volume
+  #   readOnly: true
+  #   existingClaim: volume-claim
+
+## Pass the plugins you want installed as a list.
+plugins:
+  - digrich-bubblechart-panel
+  - grafana-clock-panel
+  - grafana-piechart-panel
+  - briangann-gauge-panel
+  - jdbranham-diagram-panel
+  - jdbranham-diagram-panel
+
+## Configure grafana datasources
+datasources:
+ datasources.yaml:
+   apiVersion: 1
+   datasources:
+   - name: Prometheus
+     type: prometheus
+     url: http://prometheus-server.prometheus.svc.cluster.local:9090
+     access: proxy
+     isDefault: true
+     orgId: 1
+
+## Configure notifiers
+## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels
+notifiers: 
+ notifiers.yaml:
+   notifiers:
+   - name: email-notifier
+     type: email
+     uid: email1
+     org_id: 1
+     is_default: true
+     settings:
+       addresses: grafana@backops.????.com
+#    delete_notifiers:
+
+dashboardProviders: {}
+#  dashboardproviders.yaml:
+#    apiVersion: 1
+#    providers:
+#    - name: 'default'
+#      orgId: 1
+#      folder: ''
+#      type: file
+#      disableDeletion: false
+#      editable: true
+#      options:
+#        path: /var/lib/grafana/dashboards/default
+
+## Configure grafana dashboard to import
+## NOTE: To use dashboards you must also enable/configure dashboardProviders
+## ref: https://grafana.com/dashboards
+##
+## dashboards per provider, use provider name as key.
+##
+dashboards: {}
+  # default:
+  #   some-dashboard:
+  #     json: |
+  #       $RAW_JSON
+  #   custom-dashboard:
+  #     file: dashboards/custom-dashboard.json
+  #   prometheus-stats:
+  #     gnetId: 2
+  #     revision: 2
+  #     datasource: Prometheus
+  #   local-dashboard:
+  #     url: https://example.com/repository/test.json
+  #   local-dashboard-base64:
+  #     url: https://example.com/repository/test-b64.json
+  #     b64content: true
+
+## Reference to external ConfigMap per provider. Use provider name as key and ConfigMap name as value.
+## A provider dashboards must be defined either by external ConfigMaps or in values.yaml, not in both.
+## ConfigMap data example:
+##
+## data:
+##   example-dashboard.json: |
+##     RAW_JSON
+##
+dashboardsConfigMaps: {}
+#  default: ""
+
+## Grafana's primary configuration
+## NOTE: values in map will be converted to ini format
+## ref: http://docs.grafana.org/installation/configuration/
+##
+grafana.ini:
+  paths:
+    data: /var/lib/grafana/data
+    logs: /var/log/grafana
+    plugins: /var/lib/grafana/plugins
+    provisioning: /etc/grafana/provisioning
+  analytics:
+    check_for_updates: true
+  log:
+    mode: console
+  grafana_net:
+    url: https://grafana.net
+  server:
+    root_url: https://grafana-poc.backops.????.com/
+  auth.azuread:
+    name : Azure AD
+    enabled : true
+    allow_sign_up : true
+    client_id : ????
+    client_secret : ????
+    scopes : openid email profile
+    auth_url : 
+    token_url : 
+    allowed_domains :
+    allowed_groups :
+  ldap:
+    enabled: false
+    existingSecret: ""
+    config: ""
+
+  smtp:
+    enabled: true
+    host: ".us-west-2.elb.amazonaws.com:1025"
+
+sidecar:
+  image:
+    repository: kiwigrid/k8s-sidecar
+    tag: 0.1.151
+    sha: ""
+  imagePullPolicy: IfNotPresent
+  resources: {}
+#   limits:
+#     cpu: 100m
+#     memory: 100Mi
+#   requests:
+#     cpu: 50m
+#     memory: 50Mi
+  skipTlsVerify: true
+  enableUniqueFilenames: false
+  dashboards:
+    enabled: true
+    SCProvider: true
+    label: grafana_dashboard
+    folder: /var/lib/grafana/dashboards
+    defaultFolderName: null
+    searchNamespace: null
+    provider:
+      name: sidecarProvider
+      orgid: 1
+      folder: ''
+      # type of the provider
+      type: file
+      # disableDelete to activate a import-only behaviour
+      disableDelete: false
+      # allow updating provisioned dashboards from the UI
+      allowUiUpdates: false
+      # allow Grafana to replicate dashboard structure from filesystem
+      foldersFromFilesStructure: false
+  datasources:
+    enabled: false
+    label: grafana_datasource
+    searchNamespace: null
+  notifiers:
+    - name: 'teams-notifications'
+      type: teams
+      uid: teams-notifications
+      org_name: Main Org.
+      is_default: true
+      send_reminder: true
+      frequency: 1h
+      disable_resolve_message: false
+      settings:
+        url: "https://outlook.office.com/webhook/...."
+        uploadImage: true
+        severity: "critical"
+        httpMethod: "POST"
+        autoResolve: true
+    - name: "email-notifier"
+      sendReminder: false
+      settings:
+        addresses: "grafana@backops.????.com"
+        autoResolve: true
+        httpMethod: "POST"
+        severity: "critical"
+        singleEmail: true
+        uploadImage: false
+      type: "email"
+      uid: "email1"
+namespaceOverride: "prometheus"
